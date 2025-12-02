@@ -1,28 +1,15 @@
-#!/usr/bin/env python3
-"""Sum all IDs that are a repeated digit-sequence twice within given ranges.
-
-Reads ranges from `sample.txt` in the same directory (comma-separated
-`start-end` pairs) and prints the sum of all numbers whose decimal
-representation is some digits `t` repeated twice (i.e. `tt`).
-"""
 import sys
 
 
 def sum_repeated_double_in_range(a: int, b: int) -> int:
-	"""Return sum of numbers n in [a,b] where n = t repeated twice (no leading zeros).
-
-	For a given split length k (t has k digits), numbers are n = t * (10^k + 1).
-	We compute bounds on t and use arithmetic series sum.
-	"""
+	
 	total = 0
 	s_b = len(str(b))
-	# k is the length of the half (t). n has length 2*k, so k up to s_b//2
 	for k in range(1, (s_b // 2) + 1):
 		mult = 10**k + 1
 		t_min = 10 ** (k - 1)
 		t_max = 10**k - 1
 
-		# t must satisfy: a <= t*mult <= b
 		lo = (a + mult - 1) // mult
 		hi = b // mult
 
@@ -30,7 +17,6 @@ def sum_repeated_double_in_range(a: int, b: int) -> int:
 		hi = min(hi, t_max)
 		if lo <= hi:
 			count = hi - lo + 1
-			# sum of t from lo..hi = (lo+hi)*count//2
 			tsum = (lo + hi) * count // 2
 			total += mult * tsum
 	return total
@@ -55,7 +41,6 @@ def main(argv):
 
 
 if __name__ == '__main__':
-	# allow `part2` argument to compute the new rules (sequence repeated >=2 times)
 	if len(sys.argv) > 1 and sys.argv[1] in ('part2', '--part2'):
 		# build list of ranges
 		fname = 'sample.txt'
@@ -64,7 +49,6 @@ if __name__ == '__main__':
 
 		max_b = max(b for _, b in ranges)
 
-		# generate all numbers that are a repetition of some sequence (r>=2)
 		nums = set()
 		max_len = len(str(max_b))
 		for k in range(1, max_len + 1):
@@ -75,20 +59,16 @@ if __name__ == '__main__':
 			t_min = 10 ** (k - 1)
 			t_max = 10**k - 1
 			for r in range(2, rmax + 1):
-				# multiplier = (10^{k*r}-1)/(10^k-1)
 				mult = (10 ** (k * r) - 1) // (10 ** k - 1)
-				# t * mult <= max_b => t <= max_b // mult
 				high_t = min(t_max, max_b // mult)
 				if high_t < t_min:
 					continue
 				for t in range(t_min, high_t + 1):
 					n = t * mult
-					# ensure no leading zeros (t_min takes care) and n <= max_b
 					if n <= max_b:
 						nums.add(n)
 
 		nums_list = sorted(nums)
-		# prefix sums
 		from bisect import bisect_left, bisect_right
 
 		pref = [0]
