@@ -42,7 +42,7 @@ def compute_final_and_count_zero(instructions, start=50):
     Multiple instructions per input line are supported (commas/whitespace separated).
     """
     pos = start % 100
-    zero_count = 1 if pos == 0 else 0
+    zero_count = 0
     for line in instructions:
         line = line.strip()
         if not line:
@@ -55,12 +55,26 @@ def compute_final_and_count_zero(instructions, start=50):
             if not m:
                 raise ValueError(f"Invalid instruction: {token!r} (from line: {line!r})")
             dir_, val = m.group(1).upper(), int(m.group(2))
+            # Count how many times the dial points at 0 during this rotation.
+            # The dial moves one step at a time; we count k in 1..val where the
+            # intermediate position equals 0. For R (increment): (pos + k) % 100 == 0
+            # -> k ≡ (100 - pos) % 100. For L (decrement): (pos - k) % 100 == 0
+            # -> k ≡ pos % 100. If the minimal k0 is 0, treat it as 100.
+            if val > 0:
+                if dir_ == 'R':
+                    k0 = (100 - pos) % 100
+                else:
+                    k0 = pos % 100
+                if k0 == 0:
+                    k0 = 100
+                if val >= k0:
+                    # number of k values = 1 + floor((val - k0)/100)
+                    zero_count += 1 + (val - k0) // 100
+            # apply move
             if dir_ == 'L':
                 pos = (pos - val) % 100
             else:
                 pos = (pos + val) % 100
-            if pos == 0:
-                zero_count += 1
     return pos, zero_count
 
 def read_lines_from_stdin():
