@@ -12,59 +12,83 @@ from pathlib import Path
 import sys
 
 
-def max_two_digit_from_line(s: str) -> int:
+def max_k_subsequence_value(s: str, k: int) -> int:
+	"""Return integer value of lexicographically largest subsequence of length k.
+
+	The chosen digits must preserve original order. This uses a greedy scan
+	selecting the maximum digit possible for each position within the window
+	that still allows enough remaining digits.
+	"""
 	s = s.strip()
 	n = len(s)
-	if n < 2:
+	if k <= 0 or n < k:
 		return 0
 
-	# Convert characters to integer digits (fast)
 	digits = [ord(c) - 48 for c in s]
 
-	# Build suffix maximum digit to the right of each position
-	# suffix_max[i] = maximum digit in s[i+1:]
-	suffix_max = [-1] * n
-	# last position has no digit to its right
-	suffix_max[-1] = -1
-	for i in range(n - 2, -1, -1):
-		right_digit = digits[i + 1]
-		next_suffix = suffix_max[i + 1]
-		suffix_max[i] = right_digit if right_digit > next_suffix else next_suffix
+	picked = []
+	pos = 0
+	for remaining in range(k, 0, -1):
+		# we must pick one digit from indices [pos .. n-remaining]
+		end = n - remaining
+		# find index of max digit in digits[pos:end+1]
+		max_d = -1
+		max_idx = pos
+		for i in range(pos, end + 1):
+			d = digits[i]
+			if d > max_d:
+				max_d = d
+				max_idx = i
+				if max_d == 9:
+					break
 
-	best = 0
-	for i in range(n - 1):
-		ones = suffix_max[i]
-		if ones < 0:
-			continue
-		val = digits[i] * 10 + ones
-		if val > best:
-			best = val
-			# early exit if maximum possible reached
-			if best == 99:
-				break
+		picked.append(max_d)
+		pos = max_idx + 1
 
-	return best
+	# Convert picked digits to integer
+	val = 0
+	for d in picked:
+		val = val * 10 + d
+	return val
 
 
 def main(input_path: Path) -> int:
+	# default k is 2 for part 1; allow override via environment or args
 	total = 0
+	k = getattr(main, "k_override", 2)
 	with open(input_path, "r") as fh:
 		for line in fh:
 			s = line.strip()
 			if not s:
 				continue
-			total += max_two_digit_from_line(s)
+			total += max_k_subsequence_value(s, k)
 
 	print(total)
 	return total
 
 
 if __name__ == "__main__":
+	# CLI: python3 challenge3.py [input_path] [k]
 	input_path = Path(__file__).parent / "puzzleinput.txt"
+	k = 2
 	if len(sys.argv) > 1:
-		input_path = Path(sys.argv[1])
+		first = sys.argv[1]
+		if first.isdigit():
+			k = int(first)
+		else:
+			input_path = Path(first)
+	if len(sys.argv) > 2:
+		# second arg is k
+		try:
+			k = int(sys.argv[2])
+		except ValueError:
+			pass
+
 	if not input_path.exists():
 		print(f"Input file not found: {input_path}")
 		sys.exit(1)
+
+	# expose k to main for easier testing
+	setattr(main, "k_override", k)
 	main(input_path)
 
