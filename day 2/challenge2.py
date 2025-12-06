@@ -42,7 +42,6 @@ def main(argv):
 
 if __name__ == '__main__':
 	if len(sys.argv) > 1 and sys.argv[1] in ('part2', '--part2'):
-		# build list of ranges
 		fname = 'sample.txt'
 		data = open(fname, 'r', encoding='utf-8').read().strip()
 		ranges = list(parse_ranges(data))
@@ -52,7 +51,6 @@ if __name__ == '__main__':
 		nums = set()
 		max_len = len(str(max_b))
 		for k in range(1, max_len + 1):
-			# r must be at least 2 and k*r <= max_len
 			rmax = max_len // k
 			if rmax < 2:
 				continue

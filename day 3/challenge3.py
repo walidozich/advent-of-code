@@ -1,24 +1,11 @@
 
-#!/usr/bin/env python3
-"""Advent of Code - Day 3 (custom puzzle):
 
-Each input line is a bank of battery digits. You must turn on exactly two
-batteries (keeping their original order) to form a two-digit joltage value.
-This script finds the maximum two-digit value for each bank and prints the
-sum of those maxima for all banks in `puzzleinput.txt`.
-"""
 
 from pathlib import Path
 import sys
 
 
 def max_k_subsequence_value(s: str, k: int) -> int:
-	"""Return integer value of lexicographically largest subsequence of length k.
-
-	The chosen digits must preserve original order. This uses a greedy scan
-	selecting the maximum digit possible for each position within the window
-	that still allows enough remaining digits.
-	"""
 	s = s.strip()
 	n = len(s)
 	if k <= 0 or n < k:
@@ -45,7 +32,6 @@ def max_k_subsequence_value(s: str, k: int) -> int:
 		picked.append(max_d)
 		pos = max_idx + 1
 
-	# Convert picked digits to integer
 	val = 0
 	for d in picked:
 		val = val * 10 + d
@@ -53,7 +39,6 @@ def max_k_subsequence_value(s: str, k: int) -> int:
 
 
 def main(input_path: Path) -> int:
-	# default k is 2 for part 1; allow override via environment or args
 	total = 0
 	k = getattr(main, "k_override", 2)
 	with open(input_path, "r") as fh:
@@ -68,7 +53,6 @@ def main(input_path: Path) -> int:
 
 
 if __name__ == "__main__":
-	# CLI: python3 challenge3.py [input_path] [k]
 	input_path = Path(__file__).parent / "puzzleinput.txt"
 	k = 2
 	if len(sys.argv) > 1:
@@ -78,7 +62,6 @@ if __name__ == "__main__":
 		else:
 			input_path = Path(first)
 	if len(sys.argv) > 2:
-		# second arg is k
 		try:
 			k = int(sys.argv[2])
 		except ValueError:
@@ -88,7 +71,6 @@ if __name__ == "__main__":
 		print(f"Input file not found: {input_path}")
 		sys.exit(1)
 
-	# expose k to main for easier testing
 	setattr(main, "k_override", k)
 	main(input_path)
 
