@@ -1,14 +1,13 @@
 def solve_math_worksheet(filename):
     """
-    Parse the math worksheet and solve all problems.
+    Parse the math worksheet and solve all problems using cephalopod math.
     
-    The worksheet has problems arranged horizontally with separators.
-    Each problem consists of:
-    - A block of columns containing numbers
-    - Each row has numbers written horizontally (e.g., "123")
-    - Different rows may have different length numbers
-    - The operation for the entire problem is at the bottom
-    - Problems are separated by columns that are all spaces
+    Cephalopod math is written right-to-left in columns.
+    Each number is given in its own column, with the most significant digit at the top
+    and the least significant digit at the bottom.
+    
+    Problems are separated with a column consisting only of spaces.
+    The symbol at the bottom of the problem is still the operator to use.
     
     Example:
     123 328  51 64
@@ -16,11 +15,9 @@ def solve_math_worksheet(filename):
       6 98  215 314
     *   +   *   +
     
-    This has 4 problems:
-    - Problem 1 (cols 0-2): numbers 123, 45, 6 with operation *
-    - Problem 2 (cols 4-6): numbers 328, 64, 98 with operation +
-    - Problem 3 (cols 9-10): numbers 51, 387, 215 with operation *
-    - Problem 4 (cols 12-14): numbers 64, 23, 314 with operation +
+    Reading right-to-left, one column at a time:
+    - Rightmost problem: column 14 (4,3,4) + column 13 (6,2,1) = 4 + 621 = ...
+    - Problems are processed from right to left
     """
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -43,70 +40,50 @@ def solve_math_worksheet(filename):
     operator_row = operator_row.ljust(max_len)
     
     # Find column boundaries (separator columns are all spaces)
-    separator_cols = []
+    separator_cols = set()
     for col in range(max_len):
         if all(number_rows[i][col] == ' ' for i in range(len(number_rows))) and operator_row[col] == ' ':
-            separator_cols.append(col)
+            separator_cols.add(col)
     
-    # Group consecutive separator columns
-    separator_ranges = []
-    if separator_cols:
-        start = separator_cols[0]
-        for i in range(1, len(separator_cols)):
-            if separator_cols[i] != separator_cols[i-1] + 1:
-                # End of this separator group
-                separator_ranges.append((start, separator_cols[i-1]))
-                start = separator_cols[i]
-        separator_ranges.append((start, separator_cols[-1]))
-    
-    # Now extract problem blocks (between separator ranges)
+    # Process columns from right to left
     problems = []
-    problem_start = 0
+    col = max_len - 1
     
-    for sep_start, sep_end in separator_ranges:
-        if problem_start < sep_start:
-            # Extract problem from problem_start to sep_start-1
-            problem_end = sep_start - 1
-            
-            numbers = []
-            operation = None
-            
-            # Parse each row within this problem block
-            for row_idx in range(len(number_rows)):
-                row_text = number_rows[row_idx][problem_start:problem_end+1].strip()
-                if row_text:
-                    # Split by spaces to get individual numbers in this row
-                    row_numbers = row_text.split()
-                    numbers.extend([int(n) for n in row_numbers if n.isdigit()])
-            
-            # Get operation from operator row (any non-space character)
-            op_text = operator_row[problem_start:problem_end+1].strip()
-            for char in op_text:
-                if char in ['+', '*']:
-                    operation = char
-                    break
-            
-            if numbers and operation:
-                problems.append({'numbers': numbers, 'operation': operation})
+    while col >= 0:
+        # Skip trailing separator columns
+        while col >= 0 and col in separator_cols:
+            col -= 1
         
-        problem_start = sep_end + 1
-    
-    # Handle last problem if it exists
-    if problem_start < max_len:
+        if col < 0:
+            break
+        
+        # Collect columns for this problem (reading right-to-left)
+        problem_cols = []
+        while col >= 0 and col not in separator_cols:
+            problem_cols.append(col)
+            col -= 1
+        
+        # Reverse to get left-to-right order for easier processing
+        problem_cols.reverse()
+        
+        # Extract numbers and operation from these columns
         numbers = []
         operation = None
         
-        for row_idx in range(len(number_rows)):
-            row_text = number_rows[row_idx][problem_start:].strip()
-            if row_text:
-                row_numbers = row_text.split()
-                numbers.extend([int(n) for n in row_numbers if n.isdigit()])
-        
-        op_text = operator_row[problem_start:].strip()
-        for char in op_text:
-            if char in ['+', '*']:
-                operation = char
-                break
+        for col_idx in problem_cols:
+            # Read this column top-to-bottom to form a number
+            num_str = ""
+            for row_idx in range(len(number_rows)):
+                if number_rows[row_idx][col_idx].isdigit():
+                    num_str += number_rows[row_idx][col_idx]
+            
+            if num_str:
+                numbers.append(int(num_str))
+            
+            # Check for operation in this column
+            if operator_row[col_idx] in ['+', '*']:
+                if not operation:
+                    operation = operator_row[col_idx]
         
         if numbers and operation:
             problems.append({'numbers': numbers, 'operation': operation})
