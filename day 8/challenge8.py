@@ -70,7 +70,7 @@ def solve():
     # Initialize Union-Find
     uf = UnionFind(n)
     
-    # Connect the 1000 shortest pairs
+    # Part 1: Connect the 1000 shortest pairs
     pairs_processed = 0
     pairs_needed = 1000
     actual_connections = 0
@@ -86,25 +86,59 @@ def solve():
             if pairs_processed <= 10:
                 print(f"Pair {pairs_processed}: boxes {i} and {j}, distance: {dist:.2f}, already in same circuit")
     
-    print(f"\nPairs processed: {pairs_processed}")
-    print(f"Actual connections made: {actual_connections}")
+    print(f"\nPart 1 - Pairs processed: {pairs_processed}")
+    print(f"Part 1 - Actual connections made: {actual_connections}")
     
-    # Get component sizes
+    # Get component sizes after 1000 pairs
     component_sizes = uf.get_component_sizes()
     component_sizes.sort(reverse=True)
     
-    print(f"\nNumber of circuits: {len(component_sizes)}")
-    print(f"Top 10 circuit sizes: {component_sizes[:10]}")
+    print(f"\nPart 1 - Number of circuits: {len(component_sizes)}")
+    print(f"Part 1 - Top 10 circuit sizes: {component_sizes[:10]}")
     
     # Multiply the three largest circuit sizes
     if len(component_sizes) >= 3:
-        result = component_sizes[0] * component_sizes[1] * component_sizes[2]
-        print(f"\nAnswer: {component_sizes[0]} × {component_sizes[1]} × {component_sizes[2]} = {result}")
+        result_part1 = component_sizes[0] * component_sizes[1] * component_sizes[2]
+        print(f"\nPart 1 Answer: {component_sizes[0]} × {component_sizes[1]} × {component_sizes[2]} = {result_part1}")
     else:
         print(f"\nNot enough circuits! Only {len(component_sizes)} circuits found.")
-        result = None
+        result_part1 = None
     
-    return result
+    # Part 2: Continue until all boxes are in one circuit
+    print(f"\n{'='*60}")
+    print("PART 2: Connecting until all boxes form a single circuit")
+    print(f"{'='*60}\n")
+    
+    num_circuits = len(component_sizes)
+    last_connection = None
+    
+    while num_circuits > 1 and distances:
+        dist, i, j = heapq.heappop(distances)
+        pairs_processed += 1
+        if uf.union(i, j):
+            actual_connections += 1
+            last_connection = (i, j, dist)
+            num_circuits -= 1
+            
+            if actual_connections % 100 == 0 or num_circuits <= 10:
+                print(f"Connection {actual_connections}: boxes {i} and {j}, distance: {dist:.2f}, circuits remaining: {num_circuits}")
+    
+    if last_connection:
+        i, j, dist = last_connection
+        x1, y1, z1 = boxes[i]
+        x2, y2, z2 = boxes[j]
+        result_part2 = x1 * x2
+        
+        print(f"\nFinal connection details:")
+        print(f"  Box {i}: ({x1}, {y1}, {z1})")
+        print(f"  Box {j}: ({x2}, {y2}, {z2})")
+        print(f"  Distance: {dist:.2f}")
+        print(f"\nPart 2 Answer: {x1} × {x2} = {result_part2}")
+    else:
+        print("\nError: Could not find the final connection!")
+        result_part2 = None
+    
+    return result_part1, result_part2
 
 if __name__ == "__main__":
     answer = solve()
