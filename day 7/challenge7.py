@@ -25,7 +25,6 @@ def count_splits(grid: list[str]) -> int:
 	width = len(grid[0])
 	start_row, start_col = find_start(grid)
 
-	# Beams always move downward; represent active beams by their column in the current row.
 	beams = {start_col}
 	splits = 0
 
@@ -46,12 +45,12 @@ def count_splits(grid: list[str]) -> int:
 				for ncol in (col - 1, col + 1):
 					if 0 <= ncol < width:
 						queue.append(ncol)
-			else:  # '.' or 'S'
+			else:
 				next_row_beams.add(col)
 
 		beams = next_row_beams
-		if not beams:
-			break  # All beams have exited the manifold
+			if not beams:
+				break
 
 	return splits
 
@@ -79,7 +78,7 @@ def count_timelines(grid: list[str]) -> int:
 						queue.append((ncol, cnt))
 					else:
 						exited += cnt
-			else:  # '.' or 'S'
+			else:
 				next_row[col] = next_row.get(col, 0) + cnt
 
 		current = next_row

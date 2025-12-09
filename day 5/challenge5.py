@@ -50,24 +50,17 @@ def merge_ranges(ranges):
 
 
 def count_all_fresh_ids(filename):
-    """Count total unique ingredient IDs considered fresh by the ranges."""
     ranges, _ = parse_input(filename)
-    
-    # Merge overlapping ranges to avoid counting IDs multiple times
     merged = merge_ranges(ranges)
-    
     total_count = 0
     for start, end in merged:
         total_count += (end - start + 1)
-    
     return total_count
 
 
 if __name__ == "__main__":
-    # Part 1
     result1 = count_fresh_ingredients("puzzle_input.txt")
     print(f"Part 1 - Number of fresh ingredient IDs: {result1}")
     
-    # Part 2
     result2 = count_all_fresh_ids("puzzle_input.txt")
     print(f"Part 2 - Total ingredient IDs considered fresh: {result2}")

@@ -41,40 +41,34 @@ class UnionFind:
         return list(component_sizes.values())
 
 def distance(p1, p2):
-    """Calculate Euclidean distance between two 3D points"""
     return ((p1[0] - p2[0])**2 + (p1[1] - p2[1])**2 + (p1[2] - p2[2])**2)**0.5
 
 def solve():
-    # Read input
     with open('puzzle_input.txt', 'r') as f:
         lines = f.read().strip().split('\n')
-    
-    # Parse junction boxes
+
     boxes = []
     for line in lines:
         x, y, z = map(int, line.split(','))
         boxes.append((x, y, z))
-    
+
     n = len(boxes)
     print(f"Number of junction boxes: {n}")
-    
-    # Calculate all pairwise distances and store in a min heap
+
     distances = []
     for i in range(n):
         for j in range(i + 1, n):
             dist = distance(boxes[i], boxes[j])
             heapq.heappush(distances, (dist, i, j))
-    
+
     print(f"Total pairs: {len(distances)}")
-    
-    # Initialize Union-Find
+
     uf = UnionFind(n)
-    
-    # Part 1: Connect the 1000 shortest pairs
+
     pairs_processed = 0
     pairs_needed = 1000
     actual_connections = 0
-    
+
     while pairs_processed < pairs_needed and distances:
         dist, i, j = heapq.heappop(distances)
         pairs_processed += 1
@@ -85,33 +79,30 @@ def solve():
         else:
             if pairs_processed <= 10:
                 print(f"Pair {pairs_processed}: boxes {i} and {j}, distance: {dist:.2f}, already in same circuit")
-    
+
     print(f"\nPart 1 - Pairs processed: {pairs_processed}")
     print(f"Part 1 - Actual connections made: {actual_connections}")
-    
-    # Get component sizes after 1000 pairs
+
     component_sizes = uf.get_component_sizes()
     component_sizes.sort(reverse=True)
-    
+
     print(f"\nPart 1 - Number of circuits: {len(component_sizes)}")
     print(f"Part 1 - Top 10 circuit sizes: {component_sizes[:10]}")
-    
-    # Multiply the three largest circuit sizes
+
     if len(component_sizes) >= 3:
         result_part1 = component_sizes[0] * component_sizes[1] * component_sizes[2]
         print(f"\nPart 1 Answer: {component_sizes[0]} × {component_sizes[1]} × {component_sizes[2]} = {result_part1}")
     else:
         print(f"\nNot enough circuits! Only {len(component_sizes)} circuits found.")
         result_part1 = None
-    
-    # Part 2: Continue until all boxes are in one circuit
+
     print(f"\n{'='*60}")
     print("PART 2: Connecting until all boxes form a single circuit")
     print(f"{'='*60}\n")
-    
+
     num_circuits = len(component_sizes)
     last_connection = None
-    
+
     while num_circuits > 1 and distances:
         dist, i, j = heapq.heappop(distances)
         pairs_processed += 1
@@ -119,16 +110,16 @@ def solve():
             actual_connections += 1
             last_connection = (i, j, dist)
             num_circuits -= 1
-            
+
             if actual_connections % 100 == 0 or num_circuits <= 10:
                 print(f"Connection {actual_connections}: boxes {i} and {j}, distance: {dist:.2f}, circuits remaining: {num_circuits}")
-    
+
     if last_connection:
         i, j, dist = last_connection
         x1, y1, z1 = boxes[i]
         x2, y2, z2 = boxes[j]
         result_part2 = x1 * x2
-        
+
         print(f"\nFinal connection details:")
         print(f"  Box {i}: ({x1}, {y1}, {z1})")
         print(f"  Box {j}: ({x2}, {y2}, {z2})")
@@ -137,8 +128,9 @@ def solve():
     else:
         print("\nError: Could not find the final connection!")
         result_part2 = None
-    
+
     return result_part1, result_part2
+
 
 if __name__ == "__main__":
     answer = solve()

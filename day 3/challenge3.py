@@ -16,9 +16,7 @@ def max_k_subsequence_value(s: str, k: int) -> int:
 	picked = []
 	pos = 0
 	for remaining in range(k, 0, -1):
-		# we must pick one digit from indices [pos .. n-remaining]
 		end = n - remaining
-		# find index of max digit in digits[pos:end+1]
 		max_d = -1
 		max_idx = pos
 		for i in range(pos, end + 1):

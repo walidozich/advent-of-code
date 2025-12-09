@@ -20,7 +20,6 @@ def solve_math_worksheet(filename):
         if all(number_rows[i][col] == ' ' for i in range(len(number_rows))) and operator_row[col] == ' ':
             separator_cols.add(col)
     
-    # Process columns from right to left
     problems = []
     col = max_len - 1
     
