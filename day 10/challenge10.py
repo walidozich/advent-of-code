@@ -1,11 +1,12 @@
 import re
 from collections import deque
 from pathlib import Path
+from typing import List, Tuple
 
 
-def parse_input(path: str):
+def parse_input(path: str) -> List[Tuple[str, List[List[int]], List[int]]]:
 	"""Parse machines from the puzzle input file."""
-	machines = []
+	machines: List[Tuple[str, List[List[int]], List[int]]] = []
 	text = Path(path).read_text().splitlines()
 	for line in text:
 		if not line.strip():
@@ -16,7 +17,7 @@ def parse_input(path: str):
 		pattern = pattern_match.group(1)
 
 		button_raw = re.findall(r"\(([^)]*)\)", line)
-		buttons = []
+		buttons: List[List[int]] = []
 		for raw in button_raw:
 			if raw.strip() == "":
 				buttons.append([])
@@ -24,7 +25,12 @@ def parse_input(path: str):
 			nums = [int(x) for x in raw.split(",") if x.strip() != ""]
 			buttons.append(nums)
 
-		machines.append((pattern, buttons))
+		req_match = re.search(r"\{([^}]*)\}", line)
+		if not req_match:
+			raise ValueError(f"Missing joltage requirements in line: {line}")
+		targets = [int(x) for x in req_match.group(1).split(",") if x.strip() != ""]
+
+		machines.append((pattern, buttons, targets))
 	return machines
 
 
@@ -63,11 +69,28 @@ def bfs_solution(pattern: str, buttons: list[list[int]]):
 	raise ValueError("No solution found")
 
 
+def min_presses_joltage(buttons: List[List[int]], targets: List[int]) -> int:
+	"""Solve min button presses for joltage counters via MILP."""
+	import pulp
+
+	prob = pulp.LpProblem("machine", pulp.LpMinimize)
+	x = [pulp.LpVariable(f"x{j}", lowBound=0, cat="Integer") for j in range(len(buttons))]
+	prob += pulp.lpSum(x)
+
+	for i, target in enumerate(targets):
+		prob += pulp.lpSum(x[j] for j, toggles in enumerate(buttons) if i in toggles) == target
+
+	status = prob.solve(pulp.PULP_CBC_CMD(msg=False))
+	if pulp.LpStatus[status] != "Optimal":
+		raise ValueError("No optimal solution found")
+	return int(pulp.value(prob.objective))
+
+
 def main():
 	machines = parse_input("puzzle_input.txt")
 	total = 0
-	for pattern, buttons in machines:
-		total += bfs_solution(pattern, buttons)
+	for pattern, buttons, targets in machines:
+		total += min_presses_joltage(buttons, targets)
 	print(total)
 
 
