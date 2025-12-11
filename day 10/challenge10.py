@@ -5,7 +5,7 @@ from typing import List, Tuple
 
 
 def parse_input(path: str) -> List[Tuple[str, List[List[int]], List[int]]]:
-	"""Parse machines from the puzzle input file."""
+	
 	machines: List[Tuple[str, List[List[int]], List[int]]] = []
 	text = Path(path).read_text().splitlines()
 	for line in text:
